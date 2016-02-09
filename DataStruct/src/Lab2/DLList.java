@@ -92,6 +92,8 @@ public class DLList<E> {
     */
   	public Node insertAfter(E e, Node l) {
       	// ************************** TODO **************************
+      Node tmp = new Node(e);
+      
   	}
 
   	/** inserts a new element before a specified node
