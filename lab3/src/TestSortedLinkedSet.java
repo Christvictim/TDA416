@@ -1,6 +1,3 @@
-/**
- * Created by Morpheus on 2016-02-23.
- */
 public class TestSortedLinkedSet {
     public static void main(String[] args) {
         SimpleSet<Integer> set = new SortedLinkedListSet<Integer>();

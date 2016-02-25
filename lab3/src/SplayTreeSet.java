@@ -22,12 +22,12 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
 
         public boolean isLeftChild() {
-            return this.parent != null && this.parent.leftChild == this;
+            return ((this.parent != null) && (this.parent.leftChild == this));
         }
 
         //not used yet lol
         public boolean isRightChild() {
-            return this.parent != null && this.parent.rightChild == this;
+            return ((this.parent != null) && (this.parent.rightChild == this));
         }
     }
 
@@ -175,8 +175,23 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         return;
     }
 
-    //left zig
+    //left zig (höger enkelrotation)
     public void rZig(Node node) {
+        //Set this node's parent to be parent of this nodes rightchild
+        //(node and node.rightchild has same parent now)
+        node.rightChild.parent = node.parent;
+
+        //Set the leftchild of our parent to now point at nodes rightchild
+        node.parent.leftChild = node.rightChild;
+
+        //Set nodes rightchild to be the parent
+        node.rightChild = node.parent;
+
+        //Dont lose node.parent.parent ?? Do i need to think of this?
+        node.parent = node.parent.parent;
+
+        //Set the new rightchild, who was my parent to have node as parent
+        node.rightChild.parent = node;
         return;
     }
     //right zig

@@ -1,6 +1,3 @@
-/**
- * Created by Morpheus on 2016-02-19.
- */
 public class SortedLinkedListSet<E extends Comparable<? super E>> implements SimpleSet<E> {
     class Node {
         private E value; //its value
