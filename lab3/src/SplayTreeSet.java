@@ -81,16 +81,36 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
     }
 
+    private void removeHelper() {
+        return;
+    }
+
     @Override
     public boolean remove(E x) {
-        Node tmp = new Node(x);
-        tmp = findNode(tmp);
-        if(tmp != null){
+        Node nodeToRemove = new Node(x);
+        nodeToRemove = findNode(nodeToRemove);
+        Node tmp;
+        if (nodeToRemove != null) {
 
-            //Do some crap
-            splay(tmp);
+            if (nodeToRemove.leftChild != null) {
+
+
+            } else if (nodeToRemove.rightChild != null) {
+
+            } else {
+                if (nodeToRemove.isLeftChild()) {
+                    nodeToRemove.parent.leftChild = null;
+                    nodeToRemove.parent = null;
+                    nodeToRemove = nodeToRemove.parent;
+                } else {
+                    nodeToRemove.parent.rightChild = null;
+                    nodeToRemove.parent = null;
+                    nodeToRemove = nodeToRemove.parent;
+                }
+            }
+            splay(nodeToRemove);
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -99,15 +119,15 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     public boolean contains(E x) {
         Node tmp = new Node(x);
         tmp = findNode(tmp);
-        if(tmp != null){
+        if (tmp != null) {
             splay(tmp);
             return true;
-        }else {
+        } else {
             return false;
         }
     }
 
-    public Node findNode(Node node){
+    public Node findNode(Node node) {
         Node tmp = root;
         Node nullNode = null;
         while (true) { //Stay true!
@@ -123,9 +143,9 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                 } else {
                     return nullNode;
                 }
-            } else if(node.getValue().equals(tmp.getValue())){
+            } else if (node.getValue().equals(tmp.getValue())) {
                 return tmp;
-            }else{
+            } else {
                 return nullNode;
             }
         }
@@ -159,15 +179,15 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                     }
                 }
             }
-            //hand the lZig and rZig cases
+            //hand the left and right cases
             else {
                 //left
-                if (node.isLeftChild()){
-                    lZig(node);
+                if (node.isLeftChild()) {
+                    rotateLeft(node);
                 }
                 //right
                 else {
-                    rZig(node);
+                    rotateRight(node);
                 }
             }
 
@@ -175,39 +195,84 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         return;
     }
 
-    //left zig (höger enkelrotation)
-    public void rZig(Node node) {
-        //Set this node's parent to be parent of this nodes rightchild
-        //(node and node.rightchild has same parent now)
-        node.rightChild.parent = node.parent;
-
+    public void rotateRight(Node node) {
+        //Does it exist a rightchild??
+        if (node.rightChild != null) {
+            //Set this node's parent to be parent of this nodes rightchild
+            //(node and node.rightchild has same parent now)
+            node.rightChild.parent = node.parent;
+        }
         //Set the leftchild of our parent to now point at nodes rightchild
         node.parent.leftChild = node.rightChild;
 
         //Set nodes rightchild to be the parent
         node.rightChild = node.parent;
 
-        //Dont lose node.parent.parent ?? Do i need to think of this?
-        node.parent = node.parent.parent;
+        //ifall detta är sista rotationen ska rooten nu sättas till noden (ska alltid ske vid en splay)
+        if (node.parent.parent == null) {
+            root = node;
+        } else {
+            if (node.parent.isLeftChild()) {
+                node.parent.parent.leftChild = node;
+            } else {
+                node.parent.parent.rightChild = node;
+            }
+            //sätter nodens grandparent till min parent
+            node.parent = node.parent.parent;
+        }
 
         //Set the new rightchild, who was my parent to have node as parent
         node.rightChild.parent = node;
         return;
     }
-    //right zig
-    public void lZig(Node node) {
+
+    public void rotateLeft(Node node) {
+        // Does it exist a leftchild??
+        if (node.leftChild != null) {
+            //Same behavior as rotateright but reverse
+            node.leftChild.parent = node.parent;
+        }
+        node.parent.rightChild = node.leftChild;
+        node.leftChild = node.parent;
+        if (node.parent.parent == null) {
+            root = node;
+        } else {
+            if (node.parent.isLeftChild()) {
+                node.parent.parent.leftChild = node;
+            } else {
+                node.parent.parent.rightChild = node;
+            }
+            node.parent = node.parent.parent;
+        }
+        node.leftChild.parent = node;
         return;
     }
 
-    public void rZigZag(Node node) { return; }
+    //node vänsterbarn, förälder högerbarn
+    public void rZigZag(Node node) {
+        rotateRight(node);
+        rotateLeft(node);
+        return;
+    }
 
-    public void lZigZag(Node node) { return; }
+    //node högerbarn, förälder vänsterbarn
+    public void lZigZag(Node node) {
+        rotateLeft(node);
+        rotateRight(node);
+        return;
+    }
 
+    //node högerbarn, förälder högerbarn
     public void rZigZig(Node node) {
+        rotateRight(node.parent);
+        rotateRight(node);
         return;
     }
 
+    //node vänsterbarn, förälder vänsterbarn
     public void lZigZig(Node node) {
+        rotateLeft(node.parent);
+        rotateLeft(node);
         return;
     }
 }
