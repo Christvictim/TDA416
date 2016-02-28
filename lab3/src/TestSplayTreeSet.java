@@ -1,11 +1,14 @@
-public class TestSortedLinkedSet {
-    /*
+/**
+ * Created by Morpheus on 2016-02-25.
+ */
+public class TestSplayTreeSet {
     public static void main(String[] args) {
-        SimpleSet<Integer> set = new SortedLinkedListSet<Integer>();
+        SimpleSet<Integer> set = new SplayTreeSet<Integer>();
         System.out.println("************** ADD ***************");
         set.add(4);
         set.add(1);
         set.add(2);
+
         set.add(25);
         set.add(12);
         set.add(23);
@@ -13,24 +16,23 @@ public class TestSortedLinkedSet {
         set.add(25);
         set.add(3);
         set.add(13);
-        System.out.println(set.toString());
+        System.out.println("Add seems to have gone well!");
 
         System.out.println("");
         System.out.println("************** CONTAINS and SIZE ***************");
-        System.out.println("True if the set contains 13: " + set.contains(13));
+        System.out.println("True because the set contains 13: " + set.contains(13));
         System.out.println("False because the set doesnt contain 101: " + set.contains(101));
         System.out.println("The size of the set is: " + set.size());
 
         System.out.println("");
         System.out.println("************** REMOVE ***************");
-        System.out.println(set.toString());
         set.remove(98);
         set.remove(12);
         set.remove(25);
-        System.out.println(set.toString());
 
         System.out.println("The size of the set is: " + set.size());
 
+        /*
         System.out.println("");
         System.out.println("************** REMOVE ALL ***************");
         set.remove(4);
@@ -45,6 +47,7 @@ public class TestSortedLinkedSet {
         set.remove(13);
 
         System.out.println("The size of the set is: " + set.size());
+        */
+
     }
-    */
 }

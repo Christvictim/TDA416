@@ -44,21 +44,26 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
 
     @Override
     public boolean add(E x) {
-        if (root == null) {
-            root = new Node(x);
+
+        Node tmp = root;
+        Node toAdd = new Node(x);
+
+
+        if (this.root == null) {
+            setRoot(toAdd);
             size++;
             return true;
         }
 
-        // "A light in the darkness"
-        Node tmp = root;
-        Node toAdd = new Node(x);
-
-        while (true) { //Stay true! While-loop implementation - Obama approves!
+        //System out prints is only for us to check where the program is while testing the method
+        while(toAdd.rightChild == null || toAdd.leftChild == null){
             if (toAdd.getValue().compareTo(tmp.getValue()) < 0) {
+                //System.out.println("Inside add - whileloop - if");
                 if (tmp.leftChild != null) {
+                    //System.out.println("Inside add - whileloop - if - if");
                     tmp = tmp.leftChild;
                 } else {
+                    //System.out.println("Inside add - whileloop - if - else - return");
                     tmp.leftChild = toAdd;
                     toAdd.parent = tmp;
                     size++;
@@ -66,9 +71,12 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                     return true;
                 }
             } else if (toAdd.getValue().compareTo(tmp.getValue()) > 0) {
+                //System.out.println("Inside add - whileloop - else if");
                 if (tmp.rightChild != null) {
+                    //System.out.println("Inside add - whileloop - else if - if");
                     tmp = tmp.rightChild;
                 } else {
+                    //System.out.println("Inside add - whileloop - else if - else - return");
                     tmp.rightChild = toAdd;
                     toAdd.parent = tmp;
                     size++;
@@ -76,13 +84,12 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                     return true;
                 }
             } else {
+                //System.out.println("Inside add - whileloop - else - return");
                 return false;
             }
         }
-    }
-
-    private void removeHelper() {
-        return;
+        //System.out.println("Came to last return, the element wasnt added and something must have gone wrong");
+        return false;
     }
 
     @Override
@@ -90,25 +97,43 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         Node nodeToRemove = new Node(x);
         nodeToRemove = findNode(nodeToRemove);
         Node tmp;
+        Node nodeToSplay;
         if (nodeToRemove != null) {
-
             if (nodeToRemove.leftChild != null) {
-
+                tmp = nodeToRemove.leftChild;
+                while(tmp.rightChild != null){
+                    tmp = tmp.rightChild;
+                }
+                nodeToRemove.value = tmp.value;
+                nodeToRemove = tmp;
+                if(nodeToRemove.leftChild != null){
+                    nodeToRemove.leftChild.parent = nodeToRemove.parent;
+                    nodeToRemove.parent.leftChild = nodeToRemove.leftChild;
+                }
 
             } else if (nodeToRemove.rightChild != null) {
-
-            } else {
-                if (nodeToRemove.isLeftChild()) {
-                    nodeToRemove.parent.leftChild = null;
-                    nodeToRemove.parent = null;
-                    nodeToRemove = nodeToRemove.parent;
-                } else {
-                    nodeToRemove.parent.rightChild = null;
-                    nodeToRemove.parent = null;
-                    nodeToRemove = nodeToRemove.parent;
+                tmp = nodeToRemove.rightChild;
+                while(tmp.leftChild != null){
+                    tmp = tmp.leftChild;
+                }
+                nodeToRemove.value = tmp.value;
+                nodeToRemove = tmp;
+                if(nodeToRemove.rightChild != null){
+                    nodeToRemove.rightChild.parent = nodeToRemove.parent;
+                    nodeToRemove.parent.leftChild = nodeToRemove.rightChild;
                 }
             }
-            splay(nodeToRemove);
+            if(nodeToRemove.isLeftChild()) {
+                nodeToRemove.parent.leftChild = null;
+                nodeToRemove.parent = null;
+                nodeToSplay = nodeToRemove.parent;
+            } else {
+                nodeToRemove.parent.rightChild = null;
+                nodeToRemove.parent = null;
+                nodeToSplay = nodeToRemove.parent;
+            }
+
+            splay(nodeToSplay);
             return true;
         } else {
             return false;
@@ -153,48 +178,32 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     }
 
     public void splay(Node node) {
-        while (node != root) {
-            //see if there exists a grandparent
-            if (node.parent != root) {
-                //parent is leftchild
-                if (node.parent.isLeftChild()) {
-                    //left - left
-                    if (node.isLeftChild()) {
-                        lZigZig(node);
-                    }
-                    //left - right
-                    else {
-                        lZigZag(node);
-                    }
-                }
-                //parent is a rightchild
-                else {
-                    //right - left
-                    if (node.isLeftChild()) {
-                        rZigZag(node);
-                    }
-                    //right - right
-                    else {
-                        rZigZig(node);
-                    }
-                }
-            }
-            //hand the left and right cases
-            else {
-                //left
-                if (node.isLeftChild()) {
-                    rotateLeft(node);
-                }
-                //right
-                else {
-                    rotateRight(node);
-                }
-            }
 
+        if (node == root) { //We have splayed the node to the root, we are done.
+            return;
         }
-        return;
+
+        if (node.parent == root) { //The node is at level 2
+            //depending on what child it is, perform zig(right rotation) or zag(left rotation)
+            if (node.isLeftChild()) {
+                zig(node);
+            } else if(node.isRightChild()) {
+                zag(node);
+            }
+        } else {
+            if (node.isLeftChild() && node.parent.isLeftChild()) {
+                zigzig(node);
+            } else if (node.isRightChild() && node.parent.isRightChild()) {
+                zagzag(node);
+            } else if (node.isRightChild() && node.parent.isLeftChild()) {
+                zigzag(node);
+            } else if(node.isLeftChild() && node.parent.isRightChild()) {
+                zagzig(node);
+            }
+        }
     }
 
+    //Lots of Syso, for us to test where the program is while running
     public void rotateRight(Node node) {
         //Does it exist a rightchild??
         if (node.rightChild != null) {
@@ -223,6 +232,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
 
         //Set the new rightchild, who was my parent to have node as parent
         node.rightChild.parent = node;
+        //System.out.println("Before rotateright - return");
         return;
     }
 
@@ -248,31 +258,39 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         return;
     }
 
-    //node vänsterbarn, förälder högerbarn
-    public void rZigZag(Node node) {
-        rotateRight(node);
-        rotateLeft(node);
-        return;
+    private void zig(Node node) {
+        this.rotateRight(node);
     }
 
-    //node högerbarn, förälder vänsterbarn
-    public void lZigZag(Node node) {
-        rotateLeft(node);
-        rotateRight(node);
-        return;
+    private void zag(Node node) {
+        this.rotateLeft(node);
     }
 
-    //node högerbarn, förälder högerbarn
-    public void rZigZig(Node node) {
-        rotateRight(node.parent);
-        rotateRight(node);
-        return;
+    private void zigzig(Node node) {
+        zig(node.parent);
+        zig(node);
     }
 
-    //node vänsterbarn, förälder vänsterbarn
-    public void lZigZig(Node node) {
-        rotateLeft(node.parent);
-        rotateLeft(node);
-        return;
+    private void zagzag(Node node) {
+        zag(node.parent);
+        zag(node);
+    }
+
+    private void zigzag(Node node) {
+        zag(node);
+        zig(node);
+    }
+
+    private void zagzig(Node node) {
+        zig(node);
+        zag(node);
+    }
+
+    //Method to setRoot when needed
+    private void setRoot(Node node) {
+        this.root = node;
+        if (node != null) {
+            node.parent = null;
+        }
     }
 }
