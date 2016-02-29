@@ -20,7 +20,8 @@ public class TestSplayTreeSet {
 
         System.out.println("");
         System.out.println("************** CONTAINS and SIZE ***************");
-        System.out.println("True because the set contains 13: " + set.contains(13));
+        System.out.println("True because the set contains 1: " + set.contains(1));
+        System.out.println("True because the set contains 25: " + set.contains(25));
         System.out.println("False because the set doesnt contain 101: " + set.contains(101));
         System.out.println("The size of the set is: " + set.size());
 
