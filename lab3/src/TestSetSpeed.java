@@ -1,7 +1,6 @@
 import java.util.Random;
 
 class TestSetSpeed {
-    /*
     public static void main(String[] args) {
 
 
@@ -56,5 +55,4 @@ class TestSetSpeed {
         System.out.println("operations: " + ops);
         System.out.println("time/operation: " + (double) (endTime - startTime) * 1e6 / (double) ops + "ns");
     }
-    */
 }

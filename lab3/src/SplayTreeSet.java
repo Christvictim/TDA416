@@ -1,7 +1,7 @@
 public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<E> {
     class Node {
-        private E value; //its value
-        protected Node parent; //this nodes parent
+        private E value;
+        protected Node parent;
         protected Node rightChild;
         protected Node leftChild;
 
@@ -25,46 +25,56 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
             return ((this.parent != null) && (this.parent.leftChild == this));
         }
 
-        //not used yet lol
         public boolean isRightChild() {
             return ((this.parent != null) && (this.parent.rightChild == this));
         }
     }
 
-    //*********** Variables *************
-    private int size; //antalet noder i trädet
-    private Node root = null;
 
-    //***********************************
+    //*********** VARIABLES *************
+    private int size = 0;
+    public Node root = null;
 
+    /**
+     * Method to get the size of the SplayTree
+     *
+     * @return the ammount of objects in the splaytree
+     */
     @Override
     public int size() {
-        return size;
+        return this.size;
     }
 
+    /**
+     * Method to add a node to the tree, then Splays the element the corresponding right way to the root of the tree
+     *
+     * @param x
+     * @return true if the nodes been added and splayed to the root, false if it didnt
+     */
     @Override
     public boolean add(E x) {
 
+        //declare temporary variables used to locating where we are in the tree while searching downwards
         Node tmp = root;
         Node toAdd = new Node(x);
+        Node test = findNode(toAdd);
+        if(test != null){
+            return false;
+        }
 
-
+        //first element
         if (this.root == null) {
-            System.out.println("Adding: " + toAdd.getValue());
-            setRoot(toAdd);
-            this.root = toAdd;
+            root = toAdd;
             size++;
             return true;
         }
 
-        //System out prints is only for us to check where the program is while testing the method
-        while (toAdd.rightChild == null || toAdd.leftChild == null) {
+        //locates where to put the added node and splays it up to the root
+        while(true){
             if (toAdd.getValue().compareTo(tmp.getValue()) < 0) {
                 if (tmp.leftChild != null) {
-                    System.out.println("Continuing search down the leftchild");
                     tmp = tmp.leftChild;
                 } else {
-                    System.out.println("Adding: " + toAdd.getValue());
                     tmp.leftChild = toAdd;
                     toAdd.parent = tmp;
                     size++;
@@ -73,10 +83,8 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                 }
             } else if (toAdd.getValue().compareTo(tmp.getValue()) > 0) {
                 if (tmp.rightChild != null) {
-                    System.out.println("Continuing search down the rightchild");
                     tmp = tmp.rightChild;
                 } else {
-                    System.out.println("Adding: " + toAdd.getValue());
                     tmp.rightChild = toAdd;
                     toAdd.parent = tmp;
                     size++;
@@ -84,148 +92,139 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                     return true;
                 }
             } else {
-                System.out.println("Probably trying to add the same value");
                 return false;
             }
         }
-        System.out.println("Came to last return, the element wasnt added and something must have gone wrong");
+    }
+
+    /**
+     * Method to remove a node, if it is found in the tree
+     *
+     * @param x
+     * @return true if the element has been found and deleted, false if the node didn't exist in the splaytree
+     */
+    @Override
+    public boolean remove(E x) {
+        if(contains(x) && size > 1){
+            Node rootOfDisconnectedTree = null;
+            Node newRoot;
+
+            // If left subtree exists, save the right subtree with a new root
+            // The lefts subtrees largest number is splayed to the top and
+            // then we "ignore" the node we want to remove that contains the value x
+            if(root.leftChild != null){
+                rootOfDisconnectedTree = root.rightChild;
+                newRoot = root.leftChild;
+                while(newRoot.rightChild != null){
+                    newRoot = newRoot.rightChild;
+                }
+                splay(newRoot);
+                root.rightChild = rootOfDisconnectedTree;
+            }
+            // Mirror the if above
+            else if(root.rightChild != null){
+                rootOfDisconnectedTree = root.leftChild;
+                newRoot = root.rightChild;
+                while(newRoot.leftChild != null){
+                    newRoot = newRoot.leftChild;
+                }
+                splay(newRoot);
+                root.leftChild = rootOfDisconnectedTree;
+            }
+            // if the disconnected subtree exist, it is connected to the new root.
+            if(rootOfDisconnectedTree != null){
+                rootOfDisconnectedTree.parent = root;
+            }
+            size--;
+            return true;
+        }
+        if(contains(x) && size == 1){
+            root = null;
+            size--;
+            return true;
+        }
         return false;
     }
 
+    /**
+     * Method to check wether the node we are searching for is in the splaytree
+     *
+     * @param x
+     * @return true if node is found and then splays the node to the root - false if the node isnt found
+     */
     @Override
-    public boolean remove(E x) {
-        Node nodeToRemove = new Node(x);
-        nodeToRemove = findNode(nodeToRemove);
-        Node tmp;
-        Node nodeToSplay;
-        if (nodeToRemove != null) {
-            if (nodeToRemove.leftChild != null) {
-                tmp = nodeToRemove.leftChild;
-                while (tmp.rightChild != null) {
-                    tmp = tmp.rightChild;
-                }
-                nodeToRemove.value = tmp.value;
-                nodeToRemove = tmp;
-                if (nodeToRemove.leftChild != null) {
-                    nodeToRemove.leftChild.parent = nodeToRemove.parent;
-                    nodeToRemove.parent.leftChild = nodeToRemove.leftChild;
-                }
-
-            } else if (nodeToRemove.rightChild != null) {
-                tmp = nodeToRemove.rightChild;
-                while (tmp.leftChild != null) {
-                    tmp = tmp.leftChild;
-                }
-                nodeToRemove.value = tmp.value;
-                nodeToRemove = tmp;
-                if (nodeToRemove.rightChild != null) {
-                    nodeToRemove.rightChild.parent = nodeToRemove.parent;
-                    nodeToRemove.parent.leftChild = nodeToRemove.rightChild;
-                }
-            }
-            if (nodeToRemove.isLeftChild()) {
-                nodeToRemove.parent.leftChild = null;
-                nodeToRemove.parent = null;
-                nodeToSplay = nodeToRemove.parent;
-            } else {
-                nodeToRemove.parent.rightChild = null;
-                nodeToRemove.parent = null;
-                nodeToSplay = nodeToRemove.parent;
-            }
-
-            splay(nodeToSplay);
+    public boolean contains(E x) {
+        Node tmp = new Node(x);
+        tmp = findNode(tmp);
+        if (tmp != null) {
+            splay(tmp);
             return true;
         } else {
             return false;
         }
     }
 
-    @Override
-    public boolean contains(E x) {
-        System.out.println("Contains");
-        Node nodeToFind = new Node(x);
-        if (findNode(nodeToFind) != null) {
-            System.out.println("Contains - if - return true");
-            splay(nodeToFind);
-            return true;
-        }
-        System.out.println("Contains - return false");
-        return false;
-    }
-
+    //************* HELP METHODS ******************
     private Node findNode(Node node) {
-        System.out.println("FindNode");
-        //startnode to check
-        Node tmp = root;
 
-        //while we dont encounter a null we keep looking, otherwise - jump out and return null
-        while (tmp != null) {
-            System.out.println("FindNode - while");
-            //if they are the same, return tmp so that contains can splay it and return true
-            if (tmp.getValue().compareTo(node.getValue()) == 0) {
-                System.out.println("FindNode - if - return node");
+        Node tmp = root;
+        Node nullNode = null;
+        if(size == 0){
+            return nullNode;
+        }
+
+        while (true) { //Stay true!
+            if (node.getValue().compareTo(tmp.getValue()) < 0) {
+                if (tmp.leftChild != null) {
+                    tmp = tmp.leftChild;
+                } else {
+                    return nullNode;
+                }
+            } else if (node.getValue().compareTo(tmp.getValue()) > 0) {
+                if (tmp.rightChild != null) {
+                    tmp = tmp.rightChild;
+                } else {
+                    return nullNode;
+                }
+            } else if (node.getValue().equals(tmp.getValue())) {
                 return tmp;
-            } else if (tmp.getValue().compareTo(node.getValue()) < 0) {
-                System.out.println("FindNode - else if");
-                tmp = tmp.leftChild;
             } else {
-                System.out.println("FindNode - else");
-                tmp = tmp.rightChild;
+                return nullNode;
             }
         }
-        System.out.println("FindNode - return null");
-        return null;
+
     }
 
     private void splay(Node node) {
-        System.out.println("Splay");
-        if (node == root) { //We have splayed the node to the root, we are done.
-            System.out.println("Splay - if root == null - return");
+        if (node == root) {
             return;
         }
-
         if (node.parent == root) { //The node is at level 2
-            System.out.println("Splay - if");
-            //depending on what child it is, perform zig(right rotation) or zag(left rotation)
             if (node.isLeftChild()) {
-                System.out.println("Splay - Zig");
-                zig(node);
-            } else if (node.isRightChild()) {
-                System.out.println("Splay - Zag");
-                zag(node);
+                right(node);
+            } else if(node.isRightChild()) {
+                left(node);
             }
         } else {
             if (node.isLeftChild() && node.parent.isLeftChild()) {
-                System.out.println("Splay - ZigZig");
-                zigzig(node);
+                rightRight(node);
             } else if (node.isRightChild() && node.parent.isRightChild()) {
-                System.out.println("Splay - ZagZag");
-                zagzag(node);
+                leftLeft(node);
             } else if (node.isRightChild() && node.parent.isLeftChild()) {
-                System.out.println("Splay - ZigZag");
-                zigzag(node);
-            } else if (node.isLeftChild() && node.parent.isRightChild()) {
-                System.out.println("Splay - ZagZig");
-                zagzig(node);
+                leftRight(node);
+            } else if(node.isLeftChild() && node.parent.isRightChild()) {
+                rightLeft(node);
             }
         }
     }
 
-    //Lots of Syso, for us to test where the program is while running
     private void rotateRight(Node node) {
-        //Does it exist a rightchild??
         if (node.rightChild != null) {
-            //Set this node's parent to be parent of this nodes rightchild
-            //(node and node.rightchild has same parent now)
             node.rightChild.parent = node.parent;
         }
-        //Set the leftchild of our parent to now point at nodes rightchild
         node.parent.leftChild = node.rightChild;
-
-        //Set nodes rightchild to be the parent
         node.rightChild = node.parent;
 
-        //ifall detta är sista rotationen ska rooten nu sättas till noden (ska alltid ske vid en splay)
         if (node.parent.parent == null) {
             root = node;
         } else {
@@ -234,20 +233,14 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
             } else {
                 node.parent.parent.rightChild = node;
             }
-            //sätter nodens grandparent till min parent
-            node.parent = node.parent.parent;
         }
-
-        //Set the new rightchild, who was my parent to have node as parent
+        node.parent = node.parent.parent;
         node.rightChild.parent = node;
-        //System.out.println("Before rotateright - return");
         return;
     }
-
+    //Reverse of rotate right
     private void rotateLeft(Node node) {
-        // Does it exist a leftchild??
         if (node.leftChild != null) {
-            //Same behavior as rotateright but reverse
             node.leftChild.parent = node.parent;
         }
         node.parent.rightChild = node.leftChild;
@@ -260,45 +253,38 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
             } else {
                 node.parent.parent.rightChild = node;
             }
-            node.parent = node.parent.parent;
         }
+        node.parent = node.parent.parent;
         node.leftChild.parent = node;
         return;
     }
 
-    private void zig(Node node) {
-        this.rotateRight(node);
+    private void right(Node node) {
+        rotateRight(node);
     }
 
-    private void zag(Node node) {
-        this.rotateLeft(node);
+    private void left(Node node) {
+        rotateLeft(node);
     }
 
-    private void zigzig(Node node) {
-        zig(node.parent);
-        zig(node);
+    private void leftLeft(Node node) {
+        left(node.parent);
+        left(node);
     }
 
-    private void zagzag(Node node) {
-        zag(node.parent);
-        zag(node);
+    private void rightRight(Node node) {
+        right(node.parent);
+        right(node);
     }
 
-    private void zigzag(Node node) {
-        zag(node);
-        zig(node);
+    private void rightLeft(Node node) {
+        right(node);
+        left(node);
     }
 
-    private void zagzig(Node node) {
-        zig(node);
-        zag(node);
+    private void leftRight(Node node) {
+        left(node);
+        right(node);
     }
 
-    //Method to setRoot when needed
-    private void setRoot(Node node) {
-        this.root = node;
-        if (node != null) {
-            node.parent = null;
-        }
-    }
 }
