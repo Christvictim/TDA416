@@ -28,12 +28,37 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         public boolean isRightChild() {
             return ((this.parent != null) && (this.parent.rightChild == this));
         }
+
+        public Node getParent() {
+            return this.parent;
+        }
+
+        public Node getLeftChild() {
+            return this.leftChild;
+        }
+
+        public Node getRightChild() {
+            return this.rightChild;
+        }
+        public void setLeftChild(Node node) {
+            this.leftChild = node;
+            if (node != null) {
+                node.parent = this;
+            }
+        }
+
+        public void setRightChild(Node node) {
+            this.rightChild = node;
+            if (node != null) {
+                node.parent = this;
+            }
+        }
     }
 
 
     //*********** VARIABLES *************
     private int size = 0;
-    public Node root = null;
+    private Node root = null;
 
     /**
      * Method to get the size of the SplayTree
@@ -44,6 +69,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     public int size() {
         return this.size;
     }
+
 
     /**
      * Method to add a node to the tree, then Splays the element the corresponding right way to the root of the tree
@@ -58,7 +84,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         Node tmp = root;
         Node toAdd = new Node(x);
         Node test = findNode(toAdd);
-        if(test != null){
+        if (test != null) {
             return false;
         }
 
@@ -70,7 +96,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
 
         //locates where to put the added node and splays it up to the root
-        while(true){
+        while (true) {
             if (toAdd.getValue().compareTo(tmp.getValue()) < 0) {
                 if (tmp.leftChild != null) {
                     tmp = tmp.leftChild;
@@ -97,12 +123,122 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
     }
 
+
     /**
      * Method to remove a node, if it is found in the tree
      *
      * @param x
      * @return true if the element has been found and deleted, false if the node didn't exist in the splaytree
      */
+    @Override
+    public boolean remove(E x) {
+        Node tmp = new Node(x);
+        Node nodeToDelete = findNode(tmp);
+        if (nodeToDelete != null) { //If the node was found
+            splay(nodeToDelete);
+            Node leftSubTree = nodeToDelete.leftChild;
+            Node rightSubTree = nodeToDelete.rightChild;
+
+            //tree doesnt exist, just put right to the new
+            //splaytree and remove connection to the nodeToDelete
+            if (leftSubTree == null){
+                this.root = rightSubTree;
+                if (rightSubTree != null) {
+                    rightSubTree.parent = null;
+                }
+            //tree doesnt exist, put the left to the new tree
+            //and remove the connection to the nodeToDelete
+            } else if (rightSubTree == null){
+                this.root = leftSubTree;
+                if (leftSubTree != null) {
+                    leftSubTree.parent = null;
+                }
+            } else {
+                this.root = leftSubTree;
+                //find a trees maxvalue
+                //splay it up to the root
+                //connect it right
+            }
+
+            size--;
+            return true;
+        }
+        return false;
+
+        /*
+        Node nodeToRemove = new Node(x);
+
+        Node tmp;
+
+        if (findNode(nodeToRemove) != null) {
+            if (size == 1) {
+                this.root = null;
+                size--;
+            }
+            splay(nodeToRemove);
+            Node leftSubTreeRoot = nodeToRemove.leftChild;
+            Node rightSubTreeRoot = nodeToRemove.rightChild;
+            nodeToRemove.leftChild = null;
+            nodeToRemove.rightChild = null;
+
+            if (leftSubTreeRoot != null) {
+                tmp = leftSubTreeRoot;
+                while (tmp.rightChild == null) {
+                    if (tmp.rightChild == null && tmp.leftChild != null) {
+                        tmp = tmp.leftChild;
+                    } else if (tmp.rightChild != null) {
+                        splay(tmp.rightChild);
+                        if (leftSubTreeRoot != null) {
+                            leftSubTreeRoot.parent = tmp;
+                            tmp.leftChild = leftSubTreeRoot;
+                        }
+                        size--;
+                        return true;
+                    } else if (tmp.rightChild == null && tmp.leftChild == null) {
+                        splay(tmp);
+                        if (leftSubTreeRoot != null) {
+                            leftSubTreeRoot.parent = tmp;
+                            tmp.leftChild = leftSubTreeRoot;
+                        }
+                        size--;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+
+            } else if (rightSubTreeRoot != null) {
+                tmp = rightSubTreeRoot;
+                while (tmp.rightChild == null) {
+                    if (tmp.leftChild == null && tmp.rightChild != null) {
+                        tmp = tmp.rightChild;
+                    } else if (tmp.rightChild != null) {
+                        splay(tmp.rightChild);
+                        if (rightSubTreeRoot != null) {
+                            rightSubTreeRoot.parent = tmp;
+                            tmp.leftChild = rightSubTreeRoot;
+                        }
+                        size--;
+                        return true;
+                    } else if (tmp.leftChild == null && tmp.rightChild == null) {
+                        splay(tmp);
+                        if (rightSubTreeRoot != null) {
+                            rightSubTreeRoot.parent = tmp;
+                            tmp.leftChild = rightSubTreeRoot;
+                        }
+                        size--;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return false;
+        */
+    }
+
+    /*
     @Override
     public boolean remove(E x) {
         if(contains(x) && size > 1){
@@ -145,6 +281,8 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
         return false;
     }
+    */
+
 
     /**
      * Method to check wether the node we are searching for is in the splaytree
@@ -169,7 +307,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
 
         Node tmp = root;
         Node nullNode = null;
-        if(size == 0){
+        if (size == 0) {
             return nullNode;
         }
 
@@ -202,7 +340,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         if (node.parent == root) { //The node is at level 2
             if (node.isLeftChild()) {
                 right(node);
-            } else if(node.isRightChild()) {
+            } else if (node.isRightChild()) {
                 left(node);
             }
         } else {
@@ -212,50 +350,53 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                 leftLeft(node);
             } else if (node.isRightChild() && node.parent.isLeftChild()) {
                 leftRight(node);
-            } else if(node.isLeftChild() && node.parent.isRightChild()) {
+            } else if (node.isLeftChild() && node.parent.isRightChild()) {
                 rightLeft(node);
             }
         }
+        splay(node);
     }
 
-    private void rotateRight(Node node) {
-        if (node.rightChild != null) {
-            node.rightChild.parent = node.parent;
-        }
-        node.parent.leftChild = node.rightChild;
-        node.rightChild = node.parent;
 
-        if (node.parent.parent == null) {
-            root = node;
+    private void rotateRight(Node node) {
+        Node parent = node.parent;
+
+        if (parent.parent == null) {
+            this.root = node;
+            if (node != null) {
+                node.parent = null;
+            }
         } else {
-            if (node.parent.isLeftChild()) {
-                node.parent.parent.leftChild = node;
+            node.parent = parent.parent;
+            if (parent.isLeftChild()) {
+                parent.parent.leftChild = node;
             } else {
-                node.parent.parent.rightChild = node;
+                parent.parent.rightChild = node;
             }
         }
-        node.parent = node.parent.parent;
-        node.rightChild.parent = node;
+        parent.setLeftChild(node.rightChild);
+        node.setRightChild(parent);
         return;
     }
     //Reverse of rotate right
     private void rotateLeft(Node node) {
-        if (node.leftChild != null) {
-            node.leftChild.parent = node.parent;
-        }
-        node.parent.rightChild = node.leftChild;
-        node.leftChild = node.parent;
-        if (node.parent.parent == null) {
-            root = node;
+        Node parent = node.parent;
+
+        if (parent.parent == null) {
+            this.root = node;
+            if (node != null) {
+                node.parent = null;
+            }
         } else {
-            if (node.parent.isLeftChild()) {
-                node.parent.parent.leftChild = node;
+            node.parent = parent.parent;
+            if (parent.isLeftChild()) {
+                parent.parent.leftChild = node;
             } else {
-                node.parent.parent.rightChild = node;
+                parent.parent.rightChild = node;
             }
         }
-        node.parent = node.parent.parent;
-        node.leftChild.parent = node;
+        parent.setRightChild(node.leftChild);
+        node.setLeftChild(parent);
         return;
     }
 
@@ -286,5 +427,4 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         left(node);
         right(node);
     }
-
 }
