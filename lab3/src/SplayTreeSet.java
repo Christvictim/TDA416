@@ -29,24 +29,12 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
             return ((this.parent != null) && (this.parent.rightChild == this));
         }
 
-        public Node getParent() {
-            return this.parent;
-        }
-
-        public Node getLeftChild() {
-            return this.leftChild;
-        }
-
-        public Node getRightChild() {
-            return this.rightChild;
-        }
         public void setLeftChild(Node node) {
             this.leftChild = node;
             if (node != null) {
                 node.parent = this;
             }
         }
-
         public void setRightChild(Node node) {
             this.rightChild = node;
             if (node != null) {
@@ -55,10 +43,16 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
     }
 
-
-    //*********** VARIABLES *************
     private int size = 0;
-    private Node root = null;
+    public Node root = null;
+
+    private void setRoot(Node node) {
+        this.root = node;
+        if (node != null) {
+            node.parent = null;
+        }
+    }
+
 
     /**
      * Method to get the size of the SplayTree
@@ -70,7 +64,6 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         return this.size;
     }
 
-
     /**
      * Method to add a node to the tree, then Splays the element the corresponding right way to the root of the tree
      *
@@ -79,25 +72,25 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
      */
     @Override
     public boolean add(E x) {
-
-        //declare temporary variables used to locating where we are in the tree while searching downwards
         Node tmp = root;
         Node toAdd = new Node(x);
-        Node test = findNode(toAdd);
-        if (test != null) {
-            return false;
-        }
+        /*Node test = findNode(toAdd);
+        if(test != null){
+        	return false;
+        }*/
 
-        //first element
-        if (this.root == null) {
-            root = toAdd;
+        if (root == null) {
+            setRoot(toAdd);
             size++;
             return true;
         }
 
         //locates where to put the added node and splays it up to the root
-        while (true) {
-            if (toAdd.getValue().compareTo(tmp.getValue()) < 0) {
+        while(true){
+            if(toAdd.getValue().compareTo(tmp.getValue()) == 0){
+                return false;
+            }
+            else if (toAdd.getValue().compareTo(tmp.getValue()) < 0) {
                 if (tmp.leftChild != null) {
                     tmp = tmp.leftChild;
                 } else {
@@ -117,12 +110,11 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                     splay(toAdd);
                     return true;
                 }
-            } else {
+            } else{
                 return false;
             }
         }
     }
-
 
     /**
      * Method to remove a node, if it is found in the tree
@@ -132,157 +124,28 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
      */
     @Override
     public boolean remove(E x) {
-        Node tmp = new Node(x);
-        Node nodeToDelete = findNode(tmp);
-        if (nodeToDelete != null) { //If the node was found
-            splay(nodeToDelete);
-            Node leftSubTree = nodeToDelete.leftChild;
-            Node rightSubTree = nodeToDelete.rightChild;
-
-            //tree doesnt exist, just put right to the new
-            //splaytree and remove connection to the nodeToDelete
-            if (leftSubTree == null){
-                this.root = rightSubTree;
-                if (rightSubTree != null) {
-                    rightSubTree.parent = null;
-                }
-            //tree doesnt exist, put the left to the new tree
-            //and remove the connection to the nodeToDelete
-            } else if (rightSubTree == null){
-                this.root = leftSubTree;
-                if (leftSubTree != null) {
-                    leftSubTree.parent = null;
-                }
-            } else {
-                this.root = leftSubTree;
-                //find a trees maxvalue
-                //splay it up to the root
-                //connect it right
-            }
-
-            size--;
-            return true;
-        }
-        return false;
-
-        /*
-        Node nodeToRemove = new Node(x);
-
-        Node tmp;
-
-        if (findNode(nodeToRemove) != null) {
-            if (size == 1) {
-                this.root = null;
-                size--;
-            }
-            splay(nodeToRemove);
-            Node leftSubTreeRoot = nodeToRemove.leftChild;
-            Node rightSubTreeRoot = nodeToRemove.rightChild;
-            nodeToRemove.leftChild = null;
-            nodeToRemove.rightChild = null;
-
-            if (leftSubTreeRoot != null) {
-                tmp = leftSubTreeRoot;
-                while (tmp.rightChild == null) {
-                    if (tmp.rightChild == null && tmp.leftChild != null) {
-                        tmp = tmp.leftChild;
-                    } else if (tmp.rightChild != null) {
-                        splay(tmp.rightChild);
-                        if (leftSubTreeRoot != null) {
-                            leftSubTreeRoot.parent = tmp;
-                            tmp.leftChild = leftSubTreeRoot;
-                        }
-                        size--;
-                        return true;
-                    } else if (tmp.rightChild == null && tmp.leftChild == null) {
-                        splay(tmp);
-                        if (leftSubTreeRoot != null) {
-                            leftSubTreeRoot.parent = tmp;
-                            tmp.leftChild = leftSubTreeRoot;
-                        }
-                        size--;
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-
-            } else if (rightSubTreeRoot != null) {
-                tmp = rightSubTreeRoot;
-                while (tmp.rightChild == null) {
-                    if (tmp.leftChild == null && tmp.rightChild != null) {
-                        tmp = tmp.rightChild;
-                    } else if (tmp.rightChild != null) {
-                        splay(tmp.rightChild);
-                        if (rightSubTreeRoot != null) {
-                            rightSubTreeRoot.parent = tmp;
-                            tmp.leftChild = rightSubTreeRoot;
-                        }
-                        size--;
-                        return true;
-                    } else if (tmp.leftChild == null && tmp.rightChild == null) {
-                        splay(tmp);
-                        if (rightSubTreeRoot != null) {
-                            rightSubTreeRoot.parent = tmp;
-                            tmp.leftChild = rightSubTreeRoot;
-                        }
-                        size--;
-                        return true;
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return false;
-        */
-    }
-
-    /*
-    @Override
-    public boolean remove(E x) {
-        if(contains(x) && size > 1){
-            Node rootOfDisconnectedTree = null;
+        if(contains(x)){
+            Node rootOfDisconnectedTree = root.rightChild;
             Node newRoot;
 
-            // If left subtree exists, save the right subtree with a new root
-            // The lefts subtrees largest number is splayed to the top and
-            // then we "ignore" the node we want to remove that contains the value x
-            if(root.leftChild != null){
-                rootOfDisconnectedTree = root.rightChild;
+            if(root.leftChild == null){
+                setRoot(root.rightChild);
+            }else if(root.rightChild == null){
+                setRoot(root.leftChild);
+            }
+            else{
                 newRoot = root.leftChild;
                 while(newRoot.rightChild != null){
                     newRoot = newRoot.rightChild;
                 }
                 splay(newRoot);
-                root.rightChild = rootOfDisconnectedTree;
+                root.setRightChild(rootOfDisconnectedTree);
             }
-            // Mirror the if above
-            else if(root.rightChild != null){
-                rootOfDisconnectedTree = root.leftChild;
-                newRoot = root.rightChild;
-                while(newRoot.leftChild != null){
-                    newRoot = newRoot.leftChild;
-                }
-                splay(newRoot);
-                root.leftChild = rootOfDisconnectedTree;
-            }
-            // if the disconnected subtree exist, it is connected to the new root.
-            if(rootOfDisconnectedTree != null){
-                rootOfDisconnectedTree.parent = root;
-            }
-            size--;
-            return true;
-        }
-        if(contains(x) && size == 1){
-            root = null;
             size--;
             return true;
         }
         return false;
     }
-    */
-
 
     /**
      * Method to check wether the node we are searching for is in the splaytree
@@ -307,11 +170,12 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
 
         Node tmp = root;
         Node nullNode = null;
-        if (size == 0) {
+
+        if(size == 0){
             return nullNode;
         }
 
-        while (true) { //Stay true!
+        while (true) {
             if (node.getValue().compareTo(tmp.getValue()) < 0) {
                 if (tmp.leftChild != null) {
                     tmp = tmp.leftChild;
@@ -340,7 +204,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         if (node.parent == root) { //The node is at level 2
             if (node.isLeftChild()) {
                 right(node);
-            } else if (node.isRightChild()) {
+            } else if(node.isRightChild()) {
                 left(node);
             }
         } else {
@@ -350,22 +214,18 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
                 leftLeft(node);
             } else if (node.isRightChild() && node.parent.isLeftChild()) {
                 leftRight(node);
-            } else if (node.isLeftChild() && node.parent.isRightChild()) {
+            } else if(node.isLeftChild() && node.parent.isRightChild()) {
                 rightLeft(node);
             }
+            splay(node);
         }
-        splay(node);
     }
-
 
     private void rotateRight(Node node) {
         Node parent = node.parent;
 
         if (parent.parent == null) {
-            this.root = node;
-            if (node != null) {
-                node.parent = null;
-            }
+            setRoot(node);
         } else {
             node.parent = parent.parent;
             if (parent.isLeftChild()) {
@@ -383,10 +243,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         Node parent = node.parent;
 
         if (parent.parent == null) {
-            this.root = node;
-            if (node != null) {
-                node.parent = null;
-            }
+            setRoot(node);
         } else {
             node.parent = parent.parent;
             if (parent.isLeftChild()) {
@@ -427,4 +284,5 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         left(node);
         right(node);
     }
+
 }
