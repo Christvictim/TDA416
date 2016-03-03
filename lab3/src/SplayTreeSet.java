@@ -43,15 +43,9 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
         }
     }
 
+    //******************* VARIABLES ******************
     private int size = 0;
     public Node root = null;
-
-    private void setRoot(Node node) {
-        this.root = node;
-        if (node != null) {
-            node.parent = null;
-        }
-    }
 
 
     /**
@@ -74,10 +68,6 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     public boolean add(E x) {
         Node tmp = root;
         Node toAdd = new Node(x);
-        /*Node test = findNode(toAdd);
-        if(test != null){
-        	return false;
-        }*/
 
         if (root == null) {
             setRoot(toAdd);
@@ -283,6 +273,13 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     private void leftRight(Node node) {
         left(node);
         right(node);
+    }
+
+    private void setRoot(Node node) {
+        this.root = node;
+        if (node != null) {
+            node.parent = null;
+        }
     }
 
 }
