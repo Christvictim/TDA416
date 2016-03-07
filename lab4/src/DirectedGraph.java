@@ -7,12 +7,6 @@ public class DirectedGraph<E extends Edge> {
 	TODO: Allt ska göras här i den här klassen!
 	Fixa de fel som påstås i NodeTable.java
 	 */
-	private void dijkstras(){
-		return;
-	}
-	private void kruskal(){
-		return;
-	}
 
 	public DirectedGraph(int noOfNodes) {
 		;

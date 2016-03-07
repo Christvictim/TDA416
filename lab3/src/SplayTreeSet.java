@@ -51,7 +51,7 @@ public class SplayTreeSet<E extends Comparable<? super E>> implements SimpleSet<
     /**
      * Method to get the size of the SplayTree
      *
-     * @return the ammount of objects in the splaytree
+     * @return the amount of objects in the splaytree
      */
     @Override
     public int size() {
