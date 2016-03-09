@@ -26,18 +26,8 @@ public class DirectedGraph<E extends Edge> {
             return this.distance;
         }
 
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == null) {
-                return false;
-            }
-            if (obj == this) {
-                return true;
-            }
-            if (obj.getClass() != this.getClass()) {
-                return false;
-            }
-            return false; //TODO eller något annat test?
+        public List<E> getPath() {
+            return path;
         }
 
     }
@@ -52,7 +42,7 @@ public class DirectedGraph<E extends Edge> {
 
     //Lägg till alla edges i listorna i listan
     public void addEdge(E e) {
-        nodeList[e.getSource()].add(e);
+        nodeList[e.from].add(e);
     }
 
     public Iterator<E> shortestPath(int from, int to) { //Basicly Dijkstras
@@ -75,11 +65,12 @@ public class DirectedGraph<E extends Edge> {
                     end loop
                 end loop
         end dijkstra
-        //all values in list is false to begin with
+        */
+
+        //all values in list is false to begin with, so no need to put in 
         boolean[] visisted = new boolean[nbrOfNodes];
         PriorityQueue<DijkstraNode> queue = new PriorityQueue<DijkstraNode>();
         queue.add(new DijkstraNode(from, 0, ))
-        */
         return null;
     }
 
@@ -103,14 +94,14 @@ public class DirectedGraph<E extends Edge> {
             // Remove the edge with the least weight from the queue
             E edge = queue.poll();
 
-            //hämta e = (from, to) från kön
+            //spara edgesens from och to i variabler
             int from = edge.from;
             int to = edge.to;
 
             //om from och to i listan inte är samma lista
             if (cc[from] != cc[to]) {
                 merge((List<E>[]) cc, from, to);
-                //lägg in den borttagna edgen
+                //lägg in den borttagna edgen igen
                 cc[to].add(edge);
             }
         }
@@ -126,7 +117,7 @@ public class DirectedGraph<E extends Edge> {
             System.out.println("debug2");
             for (E e : cc[from]) {
                 cc[to].add(e);
-                cc[e.from] = cc[e.to] = cc[to] = cc[to];
+                cc[e.from] = cc[e.to] = cc[to];
             }
             cc[from] = cc[to];
         }
