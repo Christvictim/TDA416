@@ -17,10 +17,12 @@ public class DirectedGraph<E extends Edge> {
             this.distance = distance;
             this.path = path;
         }
-        public int getValue(){
+
+        public int getValue() {
             return this.value;
         }
-        public double getDistance(){
+
+        public double getDistance() {
             return this.distance;
         }
 
@@ -48,7 +50,7 @@ public class DirectedGraph<E extends Edge> {
         }
     }
 
-    //Add edges into the linkedlists inside edgeList
+    //Add edges into the list
     public void addEdge(E e) {
         nodeList[e.getSource()].add(e);
     }
@@ -73,23 +75,20 @@ public class DirectedGraph<E extends Edge> {
                     end loop
                 end loop
         end dijkstra
-         */
-        /*
         //all values in list is false to begin with
         boolean[] visisted = new boolean[nbrOfNodes];
         PriorityQueue<DijkstraNode> queue = new PriorityQueue<DijkstraNode>();
         queue.add(new DijkstraNode(from, 0, ))
-
         */
         return null;
     }
 
     public Iterator<E> minimumSpanningTree() {
-        // Set up an array of spanning mst. In the beginning each element in
+        // Set up an array of spanning cc. In the beginning each element in
         // the array represents one node.
-        List<E>[] mst = new List[this.nbrOfNodes];
-        for (int i = 0; i < mst.length; i++) {
-            mst[i] = new LinkedList<E>();
+        List<E>[] cc = new List[this.nbrOfNodes];
+        for (int i = 0; i < cc.length; i++) {
+            cc[i] = new LinkedList<E>();
         }
 
         //Lägg in alla bågar i en prioritetskö
@@ -102,7 +101,7 @@ public class DirectedGraph<E extends Edge> {
         }
 
         //Så länge pq, ej är tom && |cc| < n
-        while (!queue.isEmpty() && mst[0].size() < this.nbrOfNodes - 1) {
+        while (!(queue.isEmpty()) && (cc[0].size() < this.nbrOfNodes)) {
             // Remove the edge with the least weight from the queue
             E edge = queue.poll();
 
@@ -111,29 +110,42 @@ public class DirectedGraph<E extends Edge> {
             int to = edge.to;
 
             //om from och to i listan inte är samma lista
-            if (mst[from] != mst[to]) {
-                merge((List<E>[]) mst, from, to);
-                //lägg in den borttagna edgen och eftersom att from och to är tänkt att vara
-                //samma spelar det ingen roll om det står mst[from] eller mst[to]
-                mst[from].add(edge);
+            if (cc[from] != cc[to]) {
+                merge((List<E>[]) cc, from, to);
+                //lägg in den borttagna edgen
+                cc[to].add(edge);
             }
         }
 
-        return mst[0].iterator();
+        return cc[0].iterator();
     }
 
-    private void merge(List<E>[] mst, int from, int to) {
-        if (mst[from].size() < mst[to].size()) {
-            //TODO koppla om
-            mst[from] = mst[to];
-        } else {
-            //TODO koppla om
-            mst[to] = mst[from];
+    // *********** Help classes **********
+    private void merge(List<E>[] cc, int from, int to) {
+        System.out.println("debug1");
+        //få för alla edges i cc[from] att peka på cc[to]
+        if (cc[from].size() < cc[to].size()) {
+            System.out.println("debug2");
+            for (E e : cc[from]) {
+                cc[to].add(e);
+                cc[e.from] = cc[e.to] = cc[to] = cc[to];
+            }
+            cc[from] = cc[to];
+        }
+        //få för alla edges i cc[to] att peka på cc[from]
+        else {
+            System.out.println("debug3");
+            for (E e : cc[to]) {
+                cc[from].add(e);
+                cc[e.from] = cc[e.to] = cc[from];
+            }
+            cc[to] = cc[from];
         }
     }
 
+
     //********* Comparator classes **********
-    private class CompKruskalEdge implements Comparator<Edge> {
+    class CompKruskalEdge implements Comparator<Edge> {
 
         @Override
         public int compare(Edge o1, Edge o2) {
@@ -147,7 +159,8 @@ public class DirectedGraph<E extends Edge> {
         }
     }
 
-    private class CompDijkstraPath implements Comparator<Edge> {
+    //Ska compara distances looool :)
+    class CompDijkstraPath implements Comparator<Edge> {
 
         //Compare distances between edges
         @Override
