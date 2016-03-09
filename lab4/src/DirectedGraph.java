@@ -9,20 +9,30 @@ public class DirectedGraph<E extends Edge> {
     //Dijkstranode inner class
     class DijkstraNode {
         private int value;
+        private double distance;
+        private List<E> path;
 
-        public DijkstraNode(int value) {
+        public DijkstraNode(int value, double distance, List<E> path) {
             this.value = value;
+            this.distance = distance;
+            this.path = path;
+        }
+        public int getValue(){
+            return this.value;
+        }
+        public double getDistance(){
+            return this.distance;
         }
 
         @Override
         public boolean equals(Object obj) {
-            if (obj == null){
+            if (obj == null) {
                 return false;
             }
             if (obj == this) {
                 return true;
             }
-            if(obj.getClass() != this.getClass()){
+            if (obj.getClass() != this.getClass()) {
                 return false;
             }
             return false; //TODO eller något annat test?
@@ -32,8 +42,9 @@ public class DirectedGraph<E extends Edge> {
 
     public DirectedGraph(int nbrOfNodes) {
         this.nbrOfNodes = nbrOfNodes;
+        nodeList = (List<E>[]) new List[nbrOfNodes];
         for (int i = 0; i < nbrOfNodes; i++) {
-            this.nodeList[i] = new LinkedList<E>();
+            nodeList[i] = new LinkedList<E>();
         }
     }
 
@@ -43,69 +54,83 @@ public class DirectedGraph<E extends Edge> {
     }
 
     public Iterator<E> shortestPath(int from, int to) { //Basicly Dijkstras
+        /*
+        StartDijjkstra
+            known = {1}; // known == S in book
+                for all v in V-known // initialize
+                    p(v) = 1
+                    ssf(v) = cost(1,v); // ssf==d in book
+                end loop;
+                while V-known not empty
+                    find the smallest ssf(w) ∀w in V-known
+                    add w to known
+                    remove w from V-known
+                    for all v in EL(w) and in V-known
+                        compare cost by way of w
+                        ssf(v) = min[ ssf(v), ssf(w) + cost(w,v) ]
+                        set p(v) to w if
+                        ssf(w)+cost(w,v) < smallest
+                    end loop
+                end loop
+        end dijkstra
+         */
+        /*
+        //all values in list is false to begin with
+        boolean[] visisted = new boolean[nbrOfNodes];
+        PriorityQueue<DijkstraNode> queue = new PriorityQueue<DijkstraNode>();
+        queue.add(new DijkstraNode(from, 0, ))
+
+        */
         return null;
     }
 
-    public Iterator<E> minimumSpanningTree() { //Basicly Kruskal
-        //skapa ett fält cc som för varje nod
-        //innehåller en egen tom lista
+    public Iterator<E> minimumSpanningTree() {
+        // Set up an array of spanning mst. In the beginning each element in
+        // the array represents one node.
         List<E>[] mst = new List[this.nbrOfNodes];
-        for (int i = 0; i < cc.length; i++) {
-            cc[i] = new LinkedList<E>();
+        for (int i = 0; i < mst.length; i++) {
+            mst[i] = new LinkedList<E>();
         }
 
         //Lägg in alla bågar i en prioritetskö
         PriorityQueue<E> queue = new PriorityQueue<E>(nbrOfNodes, new CompKruskalEdge());
-        //add edges to queue
+        //lägg till edges i queue
         for (int j = 0; j < nodeList.length; j++) {
             for (int k = 0; k < nodeList[j].size(); k++) {
                 queue.add(nodeList[j].get(k));
             }
         }
 
-        while (!(queue.isEmpty()) && mst.length < nbrOfNodes) {
-            Edge edge = queue.poll(); // funkar det för att hämta
+        //Så länge pq, ej är tom && |cc| < n
+        while (!queue.isEmpty() && mst[0].size() < this.nbrOfNodes - 1) {
+            // Remove the edge with the least weight from the queue
+            E edge = queue.poll();
 
-            //hämta e = (from, to, weight) från kön
+            //hämta e = (from, to) från kön
             int from = edge.from;
             int to = edge.to;
 
             //om from och to i listan inte är samma lista
-            if (nodeList[from] != nodeList[to]) {
-                //flytta över alla elementen från den
-                //kortare listan till den andra och se till
-                //att alla berörda noder i cc refererar
-                //till den påfyllda listan
-
-                //from < to
-                if (nodeList[from].size() < nodeList[to].size()) {
-                    nodeList[to].add((E) edge);
-                    for (int s = 0; s < nodeList[from].size(); s++) {
-                        E e = nodeList[from].get(s);
-                        nodeList[to].add(e);
-                        nodeList[e.getSource()] = nodeList[to];
-                        nodeList[e.getDest()] = nodeList[to];
-                    }
-                }
-                //to < from
-                else {
-                    nodeList[from].add((E) edge);
-                    for (int s = 0; s < nodeList[to].size(); s++) {
-                        E e = nodeList[to].get(s);
-                        nodeList[from].add(e);
-                        nodeList[e.getSource()] = nodeList[from];
-                        nodeList[e.getDest()] = nodeList[from];
-
-                    }
-                }
+            if (mst[from] != mst[to]) {
+                merge((List<E>[]) mst, from, to);
+                //lägg in den borttagna edgen och eftersom att from och to är tänkt att vara
+                //samma spelar det ingen roll om det står mst[from] eller mst[to]
+                mst[from].add(edge);
             }
-
-            //lägg slutligen e i den påfyllda listan
         }
-        return mst ;
-    }
-    //********* Halp classus if needed **********
 
+        return mst[0].iterator();
+    }
+
+    private void merge(List<E>[] mst, int from, int to) {
+        if (mst[from].size() < mst[to].size()) {
+            //TODO koppla om
+            mst[from] = mst[to];
+        } else {
+            //TODO koppla om
+            mst[to] = mst[from];
+        }
+    }
 
     //********* Comparator classes **********
     private class CompKruskalEdge implements Comparator<Edge> {
@@ -115,7 +140,7 @@ public class DirectedGraph<E extends Edge> {
             if (o1.getWeight() < o2.getWeight()) {
                 return -1;
             } else if (o1.getWeight() > o2.getWeight()) {
-                return -1;
+                return 1;
             } else {
                 return 0;
             }
