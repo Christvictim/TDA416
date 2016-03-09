@@ -4,7 +4,7 @@ public class DirectedGraph<E extends Edge> {
 
     //*************** Variables ****************
     private int nbrOfNodes;
-    private List<E>[] nodeList; //List that will contain "LinkedList" that will contain edges :)
+    private List<E>[] nodeList; //lista som kommer innehålla "noder" som listor. innehåller edges senare
 
     //Dijkstranode inner class
     class DijkstraNode {
@@ -50,7 +50,7 @@ public class DirectedGraph<E extends Edge> {
         }
     }
 
-    //Add edges into the list
+    //Lägg till alla edges i listorna i listan
     public void addEdge(E e) {
         nodeList[e.getSource()].add(e);
     }
@@ -84,8 +84,6 @@ public class DirectedGraph<E extends Edge> {
     }
 
     public Iterator<E> minimumSpanningTree() {
-        // Set up an array of spanning cc. In the beginning each element in
-        // the array represents one node.
         List<E>[] cc = new List[this.nbrOfNodes];
         for (int i = 0; i < cc.length; i++) {
             cc[i] = new LinkedList<E>();
