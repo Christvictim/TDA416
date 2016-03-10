@@ -1,3 +1,5 @@
+import sun.awt.image.ImageWatched;
+
 import java.util.*;
 
 public class DirectedGraph<E extends Edge> {
@@ -8,9 +10,9 @@ public class DirectedGraph<E extends Edge> {
 
     //Dijkstranode inner class
     class DijkstraNode {
-        private int value;
-        private double distance;
-        private List<E> path;
+        protected int value;
+        protected double distance;
+        protected List<E> path;
 
         public DijkstraNode(int value, double distance, List<E> path) {
             this.value = value;
@@ -31,6 +33,19 @@ public class DirectedGraph<E extends Edge> {
         }
 
     }
+    private class CompDijkstraPath implements Comparator<DijkstraNode>{
+        @Override
+        public int compare(DijkstraNode o1, DijkstraNode o2) {
+            if (o1.getDistance() < o2.getDistance()) {
+                return -1;
+            } else if (o1.getDistance() > o2.getDistance()) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
 
     public DirectedGraph(int nbrOfNodes) {
         this.nbrOfNodes = nbrOfNodes;
@@ -45,35 +60,48 @@ public class DirectedGraph<E extends Edge> {
         nodeList[e.from].add(e);
     }
 
+    /**
+     * Computes the shortest path between to vertixes ("nodes")
+     *
+     * @param from the source vertix
+     * @param to the vertix we want to find the shortest path to
+     * @return an iterator of the path
+     */
     public Iterator<E> shortestPath(int from, int to) { //Basicly Dijkstras
-        /*
-        StartDijjkstra
-            known = {1}; // known == S in book
-                for all v in V-known // initialize
-                    p(v) = 1
-                    ssf(v) = cost(1,v); // ssf==d in book
-                end loop;
-                while V-known not empty
-                    find the smallest ssf(w) ∀w in V-known
-                    add w to known
-                    remove w from V-known
-                    for all v in EL(w) and in V-known
-                        compare cost by way of w
-                        ssf(v) = min[ ssf(v), ssf(w) + cost(w,v) ]
-                        set p(v) to w if
-                        ssf(w)+cost(w,v) < smallest
-                    end loop
-                end loop
-        end dijkstra
-        */
+        PriorityQueue<DijkstraNode> queue = new PriorityQueue<DijkstraNode>(new CompDijkstraPath()); //Our path queue
+        boolean[] visited = new boolean[nbrOfNodes];    //our array that keeps track of visited nodes,
+                                                        // doesnt have to be filled with false values since then initilaized it is allready filled with false values
+        DijkstraNode source = new DijkstraNode(from, 0, new LinkedList<E>()); //source node with a new list as path
+        queue.add(source); //add the source to the queue
 
-        //all values in list is false to begin with, so no need to put in 
-        boolean[] visisted = new boolean[nbrOfNodes];
-        PriorityQueue<DijkstraNode> queue = new PriorityQueue<DijkstraNode>();
-        queue.add(new DijkstraNode(from, 0, ))
+        while (!(queue.isEmpty())){
+            //hämta första i queuen och tag bort den
+            DijkstraNode node = queue.poll();
+            while(!(visited[node.getValue()])){
+                if (node.getValue() == to){ //ifall vi kommer till den noden vi ska till, så returna nodens path.iterator
+                    return node.getPath().iterator();
+                }
+                visited[node.getValue()] = true;
+                //hämta in de edges ifrån som grannoder har mellan den noden vi är på just nu och lägg in dem i queuen
+                for(Edge e : nodeList[node.getValue()]){
+                    //lägg in den pathen vi har hittils i "path"
+                    LinkedList<E> path = new LinkedList<E>(node.getPath());
+                    //lägg till edgen
+                    path.add((E) e);
+                    //skapar en new nod med pathen och lägger in den i queuen
+                    DijkstraNode tmp = new DijkstraNode(e.getDest(), node.getDistance(), path);
+                    queue.add(tmp);
+                }
+            }
+        }
         return null;
     }
 
+    /**
+     * Computes the mst of a graphs
+     *
+     * @return an iterator of the mst
+     */
     public Iterator<E> minimumSpanningTree() {
         List<E>[] cc = new List[this.nbrOfNodes];
         for (int i = 0; i < cc.length; i++) {
@@ -100,36 +128,28 @@ public class DirectedGraph<E extends Edge> {
 
             //om from och to i listan inte är samma lista
             if (cc[from] != cc[to]) {
-                merge((List<E>[]) cc, from, to);
-                //lägg in den borttagna edgen igen
+                //få för alla edges i cc[from] att peka på cc[to]
+                if (cc[from].size() < cc[to].size()) {
+                    for (E e : cc[from]) {
+                        cc[to].add(e);
+                        cc[e.from] = cc[e.to] = cc[to];
+                    }
+                    cc[from] = cc[to];
+                }
+                //få för alla edges i cc[to] att peka på cc[from]
+                else {
+                    for (E e : cc[to]) {
+                        cc[from].add(e);
+                        cc[e.from] = cc[e.to] = cc[from];
+                    }
+                    cc[to] = cc[from];
+                }
+                //lägga till sista noden. to och nod pekar på samma så spelar
+                //ingen roll om det är to eller from i bracketsen
                 cc[to].add(edge);
             }
         }
-
         return cc[0].iterator();
-    }
-
-    // *********** Help classes **********
-    private void merge(List<E>[] cc, int from, int to) {
-        System.out.println("debug1");
-        //få för alla edges i cc[from] att peka på cc[to]
-        if (cc[from].size() < cc[to].size()) {
-            System.out.println("debug2");
-            for (E e : cc[from]) {
-                cc[to].add(e);
-                cc[e.from] = cc[e.to] = cc[to];
-            }
-            cc[from] = cc[to];
-        }
-        //få för alla edges i cc[to] att peka på cc[from]
-        else {
-            System.out.println("debug3");
-            for (E e : cc[to]) {
-                cc[from].add(e);
-                cc[e.from] = cc[e.to] = cc[from];
-            }
-            cc[to] = cc[from];
-        }
     }
 }
   
